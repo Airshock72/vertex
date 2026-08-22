@@ -32,6 +32,9 @@
 /.agents
 /agent
 /skills-lock.json
+AGENTS.md
+CLAUDE.md
+/.claude
 
 # debug
 npm-debug.log*
