@@ -82,7 +82,7 @@ export default function Home() {
     <div className="min-h-screen bg-canvas text-neutral-900">
       {/* ── Site header ──────────────────────────────────────── */}
       <header className="h-24 border-b border-canvas-line bg-canvas">
-        <div className="max-w-[960px] mx-auto px-6 sm:px-10 h-full flex items-center">
+        <div className="max-w-360 mx-auto px-6 sm:px-10 h-full flex items-center">
           <Navbar
             links={[
               { label: "Courses", href: "/courses" },
@@ -113,7 +113,7 @@ export default function Home() {
             aria-hidden
           />
           {/* Content column: solid canvas background with hairline borders */}
-          <div className="relative max-w-[960px] mx-auto bg-canvas lg:border-x lg:border-canvas-line">
+          <div className="relative max-w-360 mx-auto bg-canvas min-[1441px]:border-x min-[1441px]:border-canvas-line">
             <div className="px-6 sm:px-10 py-20 sm:py-28 text-center">
               {/* Eyebrow badge */}
               <div className="inline-flex items-center border border-primary-500 rounded-full px-4 py-1.5 mb-8">
@@ -161,10 +161,10 @@ export default function Home() {
 
         {/* ── All Courses ───────────────────────────────────────── */}
         <section>
-          <div className="max-w-[960px] mx-auto lg:border-x lg:border-canvas-line">
+          <div className="max-w-360 mx-auto min-[1441px]:border-x min-[1441px]:border-canvas-line">
             <hr className="border-canvas-line" />
           </div>
-          <div className="max-w-[960px] mx-auto lg:border-x lg:border-canvas-line px-6 sm:px-10 py-14">
+          <div className="max-w-360 mx-auto min-[1441px]:border-x min-[1441px]:border-canvas-line px-6 sm:px-10 py-14">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-bold text-neutral-900">All Courses</h2>
               <a
@@ -194,7 +194,7 @@ export default function Home() {
         </section>
 
         {/* ── Footer note ───────────────────────────────────────── */}
-        <div className="max-w-[960px] mx-auto lg:border-x lg:border-canvas-line px-6 sm:px-10">
+        <div className="max-w-360 mx-auto min-[1441px]:border-x min-[1441px]:border-canvas-line px-6 sm:px-10">
           <div className="py-8 flex items-center justify-center gap-2.5 border-t border-canvas-line">
             <StarIcon size={18} className="text-primary-400" />
             <span className="text-base text-neutral-500">
@@ -204,7 +204,7 @@ export default function Home() {
         </div>
 
         {/* ── Bar decoration ────────────────────────────────────── */}
-        <div className="max-w-[960px] mx-auto lg:border-x lg:border-canvas-line overflow-hidden">
+        <div className="max-w-360 mx-auto min-[1441px]:border-x min-[1441px]:border-canvas-line overflow-hidden">
           <ChartBars />
         </div>
       </main>
