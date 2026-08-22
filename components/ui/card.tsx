@@ -5,26 +5,74 @@ import { BarChartIcon, ClockIcon, ExternalLinkIcon, FileIcon, LayersIcon, PlayCi
 /* ── Course Card ─────────────────────────────────────────── */
 
 interface CourseCardProps {
-  iconLabel: string;
+  iconLabel?: string;
   iconBg?: string;
+  iconNode?: ReactNode;
   title: string;
   description: string;
   level: "Beginner" | "Intermediate" | "Advanced";
   duration: string;
   modules: number;
+  layout?: "row" | "stacked";
   className?: string;
 }
 
 export function CourseCard({
-  iconLabel,
+  iconLabel = "",
   iconBg = "#0F172A",
+  iconNode,
   title,
   description,
   level,
   duration,
   modules,
+  layout = "row",
   className = "",
 }: CourseCardProps) {
+  const meta = (
+    <div className="flex items-center gap-3 text-xs text-neutral-500">
+      <span className="flex items-center gap-1">
+        <BarChartIcon size={12} />
+        {level}
+      </span>
+      <span className="flex items-center gap-1">
+        <ClockIcon size={12} />
+        {duration}
+      </span>
+      <span className="flex items-center gap-1">
+        <LayersIcon size={12} />
+        {modules} modules
+      </span>
+    </div>
+  );
+
+  if (layout === "stacked") {
+    return (
+      <div className={`bg-white rounded-xl border border-neutral-200 shadow-sm p-7 flex flex-col gap-5 ${className}`}>
+        {iconNode ?? (
+          <div
+            className="w-[72px] h-[72px] rounded-xl flex items-center justify-center text-white font-bold text-xl shrink-0"
+            style={{ backgroundColor: iconBg }}
+          >
+            {iconLabel}
+          </div>
+        )}
+        <div className="flex-1">
+          <h3
+            className="text-xl font-bold text-neutral-900 leading-snug mb-2"
+            style={{ fontFamily: "var(--font-playfair-display)" }}
+          >
+            {title}
+          </h3>
+          <p className="text-sm text-neutral-500 leading-relaxed">{description}</p>
+        </div>
+        <div className="pt-5 border-t border-neutral-100">
+          {meta}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`bg-white rounded-xl border border-neutral-200 shadow-sm p-5 flex flex-col gap-4 ${className}`}>
       <div
@@ -37,20 +85,7 @@ export function CourseCard({
         <h3 className="text-sm font-semibold text-neutral-900 leading-snug">{title}</h3>
         <p className="mt-1 text-xs text-neutral-500 leading-relaxed">{description}</p>
       </div>
-      <div className="flex items-center gap-3 text-xs text-neutral-500">
-        <span className="flex items-center gap-1">
-          <BarChartIcon size={12} />
-          {level}
-        </span>
-        <span className="flex items-center gap-1">
-          <ClockIcon size={12} />
-          {duration}
-        </span>
-        <span className="flex items-center gap-1">
-          <LayersIcon size={12} />
-          {modules} modules
-        </span>
-      </div>
+      {meta}
     </div>
   );
 }

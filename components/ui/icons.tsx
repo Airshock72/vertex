@@ -130,6 +130,32 @@ export function FileIcon({ size = 24, className }: IconProps) {
   );
 }
 
+export function BellIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg {...svg(size)} className={className}>
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
+export function StarIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg {...svg(size)} className={className}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
+export function ArrowRightIcon({ size = 20, className }: IconProps) {
+  return (
+    <svg {...svg(size)} className={className}>
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </svg>
+  );
+}
+
 export function VertexIcon({ size = 24, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
