@@ -1,6 +1,6 @@
 import { ArrowRightIcon, BellIcon, StarIcon } from "@/components/ui/icons";
 import { Navbar } from "@/components/ui/navigation";
-import { Avatar } from "@/components/ui/avatar";
+import { NavbarAuth } from "@/components/ui/navbar-auth";
 import { CourseCard } from "@/components/ui/card";
 import { SearchInput } from "@/components/ui/input";
 import { NextjsMark, DockerMark, TypescriptMark } from "@/components/brand/course-marks";
@@ -96,7 +96,7 @@ export default function Home() {
                 >
                   <BellIcon size={20} />
                 </button>
-                <Avatar initials="AB" size={40} />
+                <NavbarAuth />
               </div>
             }
           />
