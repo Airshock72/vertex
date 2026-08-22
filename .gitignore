@@ -29,6 +29,9 @@
 
 # internal
 /prompts
+/.agents
+/agent
+/skills-lock.json
 
 # debug
 npm-debug.log*
