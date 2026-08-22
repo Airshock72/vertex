@@ -3,7 +3,9 @@
 import { useAuth, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 
 export function NavbarAuth() {
-  const { isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) return null;
 
   if (isSignedIn) {
     return <UserButton />;
