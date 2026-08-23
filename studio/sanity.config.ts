@@ -5,7 +5,7 @@ import { schema } from './schemaTypes'
 import { structure } from './structure'
 
 function assertValue<T>(v: T | undefined, errorMessage: string): T {
-  if (v === undefined) throw new Error(errorMessage)
+  if (v === undefined || (typeof v === 'string' && v.trim() === '')) throw new Error(errorMessage)
   return v
 }
 

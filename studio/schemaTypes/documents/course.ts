@@ -62,7 +62,16 @@ export const course = defineType({
       description: 'Set to 0 for free courses',
       type: 'number',
       initialValue: 0,
-      validation: (rule) => rule.required().min(0),
+      validation: (rule) =>
+        rule
+          .required()
+          .min(0)
+          .custom((value) => {
+            if (value === undefined || value === null) return true
+            return Math.round(value * 100) === value * 100
+              ? true
+              : 'Price cannot have more than two decimal places'
+          }),
     }),
     defineField({
       name: 'popular',
