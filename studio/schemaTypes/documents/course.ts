@@ -68,7 +68,10 @@ export const course = defineType({
           .min(0)
           .custom((value) => {
             if (value === undefined || value === null) return true
-            return Math.round(value * 100) === value * 100
+            // parseFloat(toFixed(2)) recovers the same binary float for valid 2-decimal
+            // values; a third decimal place produces a difference of at least 0.001,
+            // well above the 1e-9 tolerance used here.
+            return Math.abs(parseFloat(value.toFixed(2)) - value) < 1e-9
               ? true
               : 'Price cannot have more than two decimal places'
           }),
