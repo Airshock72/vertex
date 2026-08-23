@@ -1,39 +1,19 @@
+import Link from "next/link";
+import Image from "next/image";
+
+import { sanityFetch } from "@/sanity/lib/fetch";
+import { COURSES_LIST_QUERY } from "@/sanity/lib/queries";
+import { urlFor } from "@/sanity/lib/image";
+import type { COURSES_LIST_QUERY_RESULT } from "@/sanity.types";
+import { LEVEL_DISPLAY, formatDuration } from "@/lib/format";
+
 import { ArrowRightIcon, BellIcon, StarIcon } from "@/components/ui/icons";
 import { Navbar } from "@/components/ui/navigation";
 import { NavbarAuth } from "@/components/ui/navbar-auth";
 import { CourseCard } from "@/components/ui/card";
 import { SearchInput } from "@/components/ui/input";
-import { NextjsMark, DockerMark, TypescriptMark } from "@/components/brand/course-marks";
 
-const courses = [
-  {
-    id: "nextjs",
-    iconNode: <NextjsMark size={72} />,
-    title: "Next.js for Production",
-    description: "Build scalable, high-performance web applications with Next.js.",
-    level: "Intermediate" as const,
-    duration: "18h 24m",
-    modules: 12,
-  },
-  {
-    id: "docker",
-    iconNode: <DockerMark size={72} />,
-    title: "Docker Essentials",
-    description: "Containerize applications and streamline your development workflow.",
-    level: "Beginner" as const,
-    duration: "10h 12m",
-    modules: 8,
-  },
-  {
-    id: "typescript",
-    iconNode: <TypescriptMark size={72} />,
-    title: "TypeScript Deep Dive",
-    description: "Go beyond the basics and write safer, more expressive code.",
-    level: "Intermediate" as const,
-    duration: "14h 36m",
-    modules: 10,
-  },
-];
+/* ── Decoration ──────────────────────────────────────────── */
 
 const gutterPattern = {
   backgroundImage: [
@@ -77,7 +57,16 @@ function ChartBars() {
   );
 }
 
-export default function Home() {
+/* ── Page ────────────────────────────────────────────────── */
+
+export default async function Home() {
+  const allCourses = (await sanityFetch({
+    query: COURSES_LIST_QUERY,
+    tags: ["course"],
+  })) as unknown as COURSES_LIST_QUERY_RESULT;
+
+  const preview = allCourses.filter((c) => c.slug !== null).slice(0, 3);
+
   return (
     <div className="min-h-screen bg-canvas text-neutral-900">
       {/* ── Site header ──────────────────────────────────────── */}
@@ -106,23 +95,19 @@ export default function Home() {
       <main>
         {/* ── Hero ─────────────────────────────────────────────── */}
         <section className="relative overflow-hidden">
-          {/* Diagonal stripe gutters (only visible when column is narrower than viewport) */}
           <div
             className="absolute inset-0 bg-canvas"
             style={gutterPattern}
             aria-hidden
           />
-          {/* Content column: solid canvas background with hairline borders */}
           <div className="relative max-w-360 mx-auto bg-canvas min-[1441px]:border-x min-[1441px]:border-canvas-line">
             <div className="px-6 sm:px-10 py-20 sm:py-28 text-center">
-              {/* Eyebrow badge */}
               <div className="inline-flex items-center border border-primary-500 rounded-full px-4 py-1.5 mb-8">
                 <span className="text-[11px] font-semibold tracking-[0.14em] uppercase text-primary-500">
                   Intelligent Learning
                 </span>
               </div>
 
-              {/* Hero heading */}
               <h1
                 className="text-5xl sm:text-6xl font-bold text-neutral-900 leading-tight mb-6"
                 style={{ fontFamily: "var(--font-playfair-display)" }}
@@ -132,24 +117,21 @@ export default function Home() {
                 in plain English.
               </h1>
 
-              {/* Subtitle */}
               <p className="text-lg text-neutral-500 leading-relaxed mb-10 max-w-md mx-auto">
                 Vertex understands what you want to learn and finds the exact lessons across all
                 your courses.
               </p>
 
-              {/* CTA */}
               <div className="mb-12">
-                <a
+                <Link
                   href="/courses"
                   className="inline-flex items-center gap-2.5 h-16 px-8 bg-primary-500 text-white rounded-xl text-base font-medium hover:bg-primary-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
                 >
                   Explore Courses
                   <ArrowRightIcon size={20} />
-                </a>
+                </Link>
               </div>
 
-              {/* Search bar */}
               <SearchInput
                 variant="lg"
                 placeholder="Ask anything about your learning..."
@@ -159,7 +141,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── All Courses ───────────────────────────────────────── */}
+        {/* ── Course preview ────────────────────────────────────── */}
         <section>
           <div className="max-w-360 mx-auto min-[1441px]:border-x min-[1441px]:border-canvas-line">
             <hr className="border-canvas-line" />
@@ -167,27 +149,49 @@ export default function Home() {
           <div className="max-w-360 mx-auto min-[1441px]:border-x min-[1441px]:border-canvas-line px-6 sm:px-10 py-14">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-bold text-neutral-900">All Courses</h2>
-              <a
+              <Link
                 href="/courses"
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-500 hover:text-primary-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400 rounded"
               >
                 View all courses
                 <ArrowRightIcon size={16} />
-              </a>
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {courses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  iconNode={course.iconNode}
-                  title={course.title}
-                  description={course.description}
-                  level={course.level}
-                  duration={course.duration}
-                  modules={course.modules}
-                  layout="stacked"
-                />
+              {preview.map((course) => (
+                <Link
+                  key={course._id}
+                  href={`/courses/${course.slug}`}
+                  className="block rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400"
+                >
+                  <CourseCard
+                    iconNode={
+                      course.coverImage?.asset ? (
+                        <Image
+                          src={urlFor(course.coverImage).width(144).height(144).url()}
+                          alt={course.coverImage.alt ?? course.title ?? ""}
+                          width={72}
+                          height={72}
+                          className="rounded-xl object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="w-[72px] h-[72px] rounded-xl bg-neutral-900 flex items-center justify-center text-white text-2xl font-bold shrink-0">
+                          {course.title?.charAt(0) ?? "V"}
+                        </div>
+                      )
+                    }
+                    title={course.title ?? ""}
+                    description={course.summary ?? ""}
+                    level={LEVEL_DISPLAY[course.level ?? ""] ?? "Beginner"}
+                    duration={
+                      course.totalDuration ? formatDuration(course.totalDuration) : "—"
+                    }
+                    modules={course.moduleCount ?? 0}
+                    layout="stacked"
+                    className="h-full hover:border-primary-200 transition-colors"
+                  />
+                </Link>
               ))}
             </div>
           </div>

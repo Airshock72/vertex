@@ -9,7 +9,7 @@ interface BadgeProps {
 const variantClasses: Record<BadgeVariant, string> = {
   video: "bg-primary-500 text-white",
   lesson: "bg-[#6366F1] text-white",
-  popular: "bg-neutral-900 text-white",
+  popular: "bg-primary-100 text-primary-500",
 };
 
 export function Badge({ variant = "video", children, className = "" }: BadgeProps) {
