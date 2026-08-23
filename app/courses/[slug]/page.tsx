@@ -36,7 +36,7 @@ import {
   LockIcon,
 } from "@/components/ui/icons";
 
-import CourseModules from "./CourseModules";
+import CourseModules, { CoursePageTracker } from "./CourseModules";
 import { formatDuration, formatCount, formatLevel } from "@/lib/format";
 
 /* ── Outcome icon map (emoji → SVG icon) ─────────────────── */
@@ -152,6 +152,7 @@ export default async function CoursePage({ params }: Props) {
         </div>
       </header>
 
+      <CoursePageTracker courseSlug={slug} courseTitle={course.title ?? ""} moduleCount={moduleCount} />
       <main className="max-w-360 mx-auto px-6 sm:px-10 pb-36">
         {/* ── Breadcrumbs ───────────────────────────────────── */}
         <div className="py-5">
@@ -308,7 +309,7 @@ export default async function CoursePage({ params }: Props) {
                 {formatDuration(totalSeconds)}
               </span>
             </div>
-            <CourseModules modules={modules} />
+            <CourseModules modules={modules} courseSlug={slug} courseTitle={course.title ?? ""} />
           </section>
         )}
       </main>
