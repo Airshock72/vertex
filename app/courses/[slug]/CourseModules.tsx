@@ -23,8 +23,9 @@ interface Props {
 }
 
 function formatDuration(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.round((seconds % 3600) / 60);
+  const totalMinutes = Math.round(seconds / 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
   if (h === 0) return `${m}m`;
   if (m === 0) return `${h}h`;
   return `${h}h ${m}m`;
@@ -52,61 +53,68 @@ export default function CourseModules({ modules }: Props) {
     <div>
       <div className="rounded-2xl border border-canvas-line overflow-hidden">
         {visible.map((mod, modIdx) => {
-          const isOpen = expanded.has(mod._key);
+          const hasLessons = (mod.lessons?.length ?? 0) > 0;
+          const isOpen = hasLessons && expanded.has(mod._key);
           const seconds =
             mod.lessons?.reduce((s, l) => s + (l.duration ?? 0), 0) ?? 0;
           const duration = seconds > 0 ? formatDuration(seconds) : null;
+
+          const rowMeta = (
+            <>
+              <span className="shrink-0 w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center text-sm text-neutral-500 font-medium">
+                {modIdx + 1}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-neutral-900">
+                  {mod.title}
+                </p>
+                {mod.summary && (
+                  <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed">
+                    {mod.summary}
+                  </p>
+                )}
+              </div>
+              {duration && (
+                <span className="shrink-0 text-sm text-neutral-500">
+                  {duration}
+                </span>
+              )}
+            </>
+          );
 
           return (
             <div
               key={mod._key}
               className="border-b border-canvas-line last:border-b-0"
             >
-              <button
-                onClick={() => toggle(mod._key)}
-                aria-expanded={isOpen}
-                aria-controls={`mod-${mod._key}`}
-                className="w-full flex items-center gap-4 px-6 py-4 hover:bg-neutral-50 transition-colors text-left"
-              >
-                <span className="shrink-0 w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center text-sm text-neutral-500 font-medium">
-                  {modIdx + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-neutral-900">
-                    {mod.title}
-                  </p>
-                  {mod.summary && (
-                    <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed">
-                      {mod.summary}
-                    </p>
-                  )}
+              {hasLessons ? (
+                <button
+                  onClick={() => toggle(mod._key)}
+                  aria-expanded={isOpen}
+                  aria-controls={`mod-${mod._key}`}
+                  className="w-full flex items-center gap-4 px-6 py-4 hover:bg-neutral-50 transition-colors text-left"
+                >
+                  {rowMeta}
+                  <ChevronDownIcon
+                    size={16}
+                    className={`shrink-0 text-neutral-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                    aria-hidden
+                  />
+                </button>
+              ) : (
+                <div className="flex items-center gap-4 px-6 py-4 cursor-default">
+                  {rowMeta}
                 </div>
-                {duration && (
-                  <span className="shrink-0 text-sm text-neutral-500">
-                    {duration}
-                  </span>
-                )}
-                <ChevronDownIcon
-                  size={16}
-                  className={`shrink-0 text-neutral-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                  aria-hidden
-                />
-              </button>
+              )}
 
-              {isOpen && mod.lessons && mod.lessons.length > 0 && (
+              {isOpen && (
                 <ul
                   id={`mod-${mod._key}`}
                   className="border-t border-canvas-line"
                 >
-                  {mod.lessons.map((lesson, lesIdx) => (
-                    <li
-                      key={lesson._id}
-                      className="border-b border-neutral-100 last:border-b-0"
-                    >
-                      <a
-                        href={lesson.slug ? `/lessons/${lesson.slug}` : "#"}
-                        className="flex items-center gap-4 px-6 py-3 bg-neutral-50/60 hover:bg-neutral-100 transition-colors"
-                      >
+                  {mod.lessons!.map((lesson, lesIdx) => {
+                    const lessonContent = (
+                      <>
                         <span className="shrink-0 w-8 text-right text-xs text-neutral-400">
                           {modIdx + 1}.{lesIdx + 1}
                         </span>
@@ -123,9 +131,32 @@ export default function CourseModules({ modules }: Props) {
                             {formatDuration(lesson.duration)}
                           </span>
                         )}
-                      </a>
-                    </li>
-                  ))}
+                      </>
+                    );
+
+                    return (
+                      <li
+                        key={lesson._id}
+                        className="border-b border-neutral-100 last:border-b-0"
+                      >
+                        {lesson.slug ? (
+                          <a
+                            href={`/lessons/${lesson.slug}`}
+                            className="flex items-center gap-4 px-6 py-3 bg-neutral-50/60 hover:bg-neutral-100 transition-colors"
+                          >
+                            {lessonContent}
+                          </a>
+                        ) : (
+                          <div
+                            className="flex items-center gap-4 px-6 py-3 bg-neutral-50/60 opacity-50 cursor-default select-none"
+                            aria-disabled="true"
+                          >
+                            {lessonContent}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

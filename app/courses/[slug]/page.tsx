@@ -104,7 +104,9 @@ export default async function CoursePage({ params }: Props) {
     ) ?? 0;
 
   const moduleCount = course.modules?.length ?? 0;
-  const firstLesson = course.modules?.[0]?.lessons?.[0];
+  const firstLesson = course.modules
+    ?.flatMap((mod) => mod.lessons ?? [])
+    .find((l) => l.slug !== null);
   const firstLessonHref = firstLesson?.slug
     ? `/lessons/${firstLesson.slug}`
     : "/courses";
@@ -138,7 +140,8 @@ export default async function CoursePage({ params }: Props) {
               <div className="flex items-center gap-3">
                 <button
                   aria-label="Notifications"
-                  className="w-10 h-10 flex items-center justify-center text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  disabled
+                  className="w-10 h-10 flex items-center justify-center text-neutral-400 rounded-full cursor-not-allowed"
                 >
                   <BellIcon size={20} />
                 </button>
@@ -239,7 +242,8 @@ export default async function CoursePage({ params }: Props) {
               </Link>
               <button
                 type="button"
-                className="inline-flex items-center gap-2.5 h-14 px-6 border border-canvas-line bg-canvas rounded-xl text-base font-medium text-neutral-700 hover:bg-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2"
+                disabled
+                className="inline-flex items-center gap-2.5 h-14 px-6 border border-canvas-line bg-canvas rounded-xl text-base font-medium text-neutral-400 cursor-not-allowed"
               >
                 <BookmarkIcon size={18} />
                 Bookmark
