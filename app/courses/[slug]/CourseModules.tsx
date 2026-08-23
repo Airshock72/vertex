@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDownIcon } from "@/components/ui/icons";
+import posthog from "posthog-js";
 
 type LessonData = {
   _id: string;
@@ -20,6 +21,8 @@ type ModuleData = {
 
 interface Props {
   modules: ModuleData[];
+  courseSlug?: string;
+  courseTitle?: string;
 }
 
 function formatDuration(seconds: number): string {
@@ -33,18 +36,39 @@ function formatDuration(seconds: number): string {
 
 const SHOW_INITIAL = 6;
 
-export default function CourseModules({ modules }: Props) {
+export default function CourseModules({ modules, courseSlug, courseTitle }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [showAll, setShowAll] = useState(false);
 
   const visible = showAll ? modules : modules.slice(0, SHOW_INITIAL);
   const hasMore = modules.length > SHOW_INITIAL;
 
-  function toggle(key: string) {
+  // Sync course view with external analytics system (PostHog)
+  useEffect(() => {
+    posthog.capture("course_viewed", {
+      course_slug: courseSlug,
+      course_title: courseTitle,
+      module_count: modules.length,
+    });
+    // Intentionally runs once on mount — this is a page-impression event
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function toggle(key: string, modTitle: string | null) {
     setExpanded((prev) => {
       const next = new Set(prev);
+      const isOpening = !next.has(key);
       if (next.has(key)) next.delete(key);
       else next.add(key);
+
+      if (isOpening) {
+        posthog.capture("module_expanded", {
+          course_slug: courseSlug,
+          course_title: courseTitle,
+          module_title: modTitle,
+        });
+      }
+
       return next;
     });
   }
@@ -89,7 +113,7 @@ export default function CourseModules({ modules }: Props) {
             >
               {hasLessons ? (
                 <button
-                  onClick={() => toggle(mod._key)}
+                  onClick={() => toggle(mod._key, mod.title)}
                   aria-expanded={isOpen}
                   aria-controls={`mod-${mod._key}`}
                   className="w-full flex items-center gap-4 px-6 py-4 hover:bg-neutral-50 transition-colors text-left"
@@ -143,6 +167,17 @@ export default function CourseModules({ modules }: Props) {
                           <a
                             href={`/lessons/${lesson.slug}`}
                             className="flex items-center gap-4 px-6 py-3 bg-neutral-50/60 hover:bg-neutral-100 transition-colors"
+                            onClick={() =>
+                              posthog.capture("lesson_clicked", {
+                                course_slug: courseSlug,
+                                course_title: courseTitle,
+                                module_title: mod.title,
+                                lesson_title: lesson.title,
+                                lesson_slug: lesson.slug,
+                                lesson_index: `${modIdx + 1}.${lesIdx + 1}`,
+                                free_preview: lesson.freePreview ?? false,
+                              })
+                            }
                           >
                             {lessonContent}
                           </a>

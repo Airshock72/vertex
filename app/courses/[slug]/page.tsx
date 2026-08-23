@@ -308,7 +308,7 @@ export default async function CoursePage({ params }: Props) {
                 {formatDuration(totalSeconds)}
               </span>
             </div>
-            <CourseModules modules={modules} />
+            <CourseModules modules={modules} courseSlug={slug} courseTitle={course.title ?? ""} />
           </section>
         )}
       </main>
