@@ -4,6 +4,24 @@ import { useState, useEffect } from "react";
 import { ChevronDownIcon } from "@/components/ui/icons";
 import posthog from "posthog-js";
 
+interface TrackerProps {
+  courseSlug?: string;
+  courseTitle?: string;
+  moduleCount: number;
+}
+
+export function CoursePageTracker({ courseSlug, courseTitle, moduleCount }: TrackerProps) {
+  useEffect(() => {
+    posthog.capture("course_viewed", {
+      course_slug: courseSlug,
+      course_title: courseTitle,
+      module_count: moduleCount,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
+
 type LessonData = {
   _id: string;
   title: string | null;
@@ -43,34 +61,21 @@ export default function CourseModules({ modules, courseSlug, courseTitle }: Prop
   const visible = showAll ? modules : modules.slice(0, SHOW_INITIAL);
   const hasMore = modules.length > SHOW_INITIAL;
 
-  // Sync course view with external analytics system (PostHog)
-  useEffect(() => {
-    posthog.capture("course_viewed", {
-      course_slug: courseSlug,
-      course_title: courseTitle,
-      module_count: modules.length,
-    });
-    // Intentionally runs once on mount — this is a page-impression event
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   function toggle(key: string, modTitle: string | null) {
+    const isOpening = !expanded.has(key);
     setExpanded((prev) => {
       const next = new Set(prev);
-      const isOpening = !next.has(key);
       if (next.has(key)) next.delete(key);
       else next.add(key);
-
-      if (isOpening) {
-        posthog.capture("module_expanded", {
-          course_slug: courseSlug,
-          course_title: courseTitle,
-          module_title: modTitle,
-        });
-      }
-
       return next;
     });
+    if (isOpening) {
+      posthog.capture("module_expanded", {
+        course_slug: courseSlug,
+        course_title: courseTitle,
+        module_title: modTitle,
+      });
+    }
   }
 
   return (

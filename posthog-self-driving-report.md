@@ -28,11 +28,11 @@ ID 79617, created 2026-08-23.
 
 | Product | Status | Notes |
 |---|---|---|
-| Session Replay | Already enabled | `posthog.init` has no `disable_session_recording` override — server enable is in effect |
-| Error Tracking | Already enabled | `capture_exceptions: true` in `instrumentation-client.ts` — in effect |
-| Support (Conversations) | Enabled (new) | Tickets only arrive once an inbound channel is connected — see Follow-ups |
+| Session Replay | Disabled (local override) | `disable_session_recording: true` in `instrumentation-client.ts` overrides the server enable |
+| Error Tracking | Disabled (local override) | `capture_exceptions: false` in `instrumentation-client.ts` overrides the server enable |
+| Support (Conversations) | Disabled (local override) | `disable_conversations: true` in `instrumentation-client.ts`; tickets require an inbound channel — see Follow-ups |
 
-`posthog.init` override check was clean: no options cancel the server enables.
+To re-enable any product, remove its corresponding override from `instrumentation-client.ts`.
 
 ---
 
