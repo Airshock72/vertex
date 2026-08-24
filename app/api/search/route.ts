@@ -1,3 +1,4 @@
+import { createHash } from 'crypto'
 import { type NextRequest } from 'next/server'
 import { generateText, Output, isStepCount } from 'ai'
 import { openai } from '@ai-sdk/openai'
@@ -53,7 +54,14 @@ function releaseSlot(id: string): void {
   const s = clientStates.get(id)
   if (!s) return
   s.active = Math.max(0, s.active - 1)
-  if (s.active === 0 && s.timestamps.length === 0) clientStates.delete(id)
+  if (s.active === 0) {
+    // Filter expired timestamps at the release boundary so entries whose
+    // rate-limit window has passed are removed without waiting for a
+    // subsequent request from the same client.
+    const now = Date.now()
+    s.timestamps = s.timestamps.filter((t) => now - t < RATE_WINDOW_MS)
+    if (s.timestamps.length === 0) clientStates.delete(id)
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -83,13 +91,18 @@ export async function POST(req: NextRequest) {
   let mcpClient: Awaited<ReturnType<typeof createSearchMcpClient>> | null = null
 
   try {
-    const [initialContext, client] = await Promise.all([
+    // allSettled so a resolved MCP client is always assigned before any error
+    // is rethrown — the finally block can then close it reliably.
+    const [contextOutcome, clientOutcome] = await Promise.allSettled([
       fetchInitialContext(),
       createSearchMcpClient(),
     ])
-    mcpClient = client
+    if (clientOutcome.status === 'fulfilled') mcpClient = clientOutcome.value
+    if (contextOutcome.status === 'rejected') throw contextOutcome.reason
+    if (clientOutcome.status === 'rejected') throw clientOutcome.reason
+    const initialContext = (contextOutcome as PromiseFulfilledResult<string>).value
 
-    const allMcpTools = await mcpClient.tools()
+    const allMcpTools = await mcpClient!.tools()
     // Exclude initial_context — schema is already injected into the system prompt
     const mcpTools = Object.fromEntries(
       Object.entries(allMcpTools).filter(([k]) => k !== 'initial_context'),
@@ -112,12 +125,18 @@ export async function POST(req: NextRequest) {
 
     const ph = getPostHogClient()
     if (ph) {
-      ph.capture({
-        distinctId: 'anonymous',
-        event: 'search_performed',
-        properties: { query, resultCount: results.length, sort },
-      })
-      await ph.shutdown()
+      try {
+        const queryHash = createHash('sha256').update(query).digest('hex')
+        ph.capture({
+          distinctId: 'anonymous',
+          event: 'search_performed',
+          properties: { queryHash, resultCount: results.length, sort },
+        })
+        // flush sends pending events without tearing down the singleton client
+        await ph.flush()
+      } catch {
+        // Analytics errors must not affect the search response
+      }
     }
 
     return Response.json({
