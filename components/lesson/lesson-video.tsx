@@ -32,10 +32,10 @@ export function LessonVideo({
     ? Math.max(0, Math.min(parseInt(rawT, 10) || 0, duration ?? Infinity))
     : 0;
 
-  const autoPlayOnLoad = startSeconds > 0;
+  const parsed = videoUrl ? parseVideoUrl(videoUrl) : null;
+  const autoPlayOnLoad = startSeconds > 0 && parsed !== null;
   // Seed from URL so the embed loads immediately without needing a setState in an effect.
   const [playing, setPlaying] = useState(autoPlayOnLoad);
-  const parsed = videoUrl ? parseVideoUrl(videoUrl) : null;
 
   // Stable capture helper — guarded by capturedRef so it fires at most once.
   const captureVideoPlayed = useCallback(() => {
