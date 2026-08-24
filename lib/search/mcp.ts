@@ -7,6 +7,7 @@ const READ_TOKEN = process.env.SANITY_API_READ_TOKEN
 
 if (!MCP_URL) throw new Error('Missing env: SANITY_CONTEXT_MCP_URL')
 if (!READ_TOKEN) throw new Error('Missing env: SANITY_API_READ_TOKEN')
+if (!MCP_URL.startsWith('https://')) throw new Error('SANITY_CONTEXT_MCP_URL must use HTTPS')
 
 let cachedContext: string | null = null
 let cachedAt = 0

@@ -4,27 +4,11 @@ import { client } from '@/sanity/lib/client'
 import { LESSONS_BY_IDS_QUERY } from '@/sanity/lib/queries'
 import { lessonHref } from '../routes'
 import type { ModelHit, SearchResult } from './types'
+import type { LESSONS_BY_IDS_QUERY_RESULT } from '@/sanity.types'
 
 const MAX_HITS = 100
 
-type LessonRow = {
-  _id: string
-  _createdAt: string
-  title: string | null
-  slug: string | null
-  duration: number | null
-  keyPoints: string[] | null
-  course: {
-    _id: string
-    title: string | null
-    slug: string | null
-    modules: Array<{
-      _key: string
-      title: string | null
-      lessonIds: (string | null)[] | null
-    }> | null
-  } | null
-}
+type LessonRow = LESSONS_BY_IDS_QUERY_RESULT[number]
 
 function deriveModuleAndLabel(
   lessonId: string,

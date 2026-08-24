@@ -11,7 +11,36 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-const MODEL_ID = (process.env.SEARCH_MODEL ?? 'gpt-4o-mini') as Parameters<typeof openai>[0]
+const MODEL_ID = (process.env.SEARCH_MODEL?.trim() || 'gpt-4o-mini') as Parameters<typeof openai>[0]
+
+// In-process rate and concurrency limiter (single-process deployments; resets on cold start)
+const RATE_WINDOW_MS = 60_000
+const RATE_MAX = 10
+const CONCURRENCY_MAX = 2
+
+type ClientState = { timestamps: number[]; active: number }
+const clientStates = new Map<string, ClientState>()
+
+function clientId(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+}
+
+function acquireSlot(id: string): 'ok' | 'rate' | 'concurrency' {
+  const now = Date.now()
+  const s = clientStates.get(id) ?? { timestamps: [], active: 0 }
+  s.timestamps = s.timestamps.filter((t) => now - t < RATE_WINDOW_MS)
+  if (s.active >= CONCURRENCY_MAX) { clientStates.set(id, s); return 'concurrency' }
+  if (s.timestamps.length >= RATE_MAX) { clientStates.set(id, s); return 'rate' }
+  s.timestamps.push(now)
+  s.active += 1
+  clientStates.set(id, s)
+  return 'ok'
+}
+
+function releaseSlot(id: string): void {
+  const s = clientStates.get(id)
+  if (s) s.active = Math.max(0, s.active - 1)
+}
 
 export async function POST(req: NextRequest) {
   let body: unknown
@@ -27,6 +56,15 @@ export async function POST(req: NextRequest) {
   }
 
   const { query, sort } = parsed.data
+
+  const id = clientId(req)
+  const slot = acquireSlot(id)
+  if (slot === 'rate') {
+    return Response.json({ error: 'Too many requests' }, { status: 429 })
+  }
+  if (slot === 'concurrency') {
+    return Response.json({ error: 'Too many concurrent requests' }, { status: 429 })
+  }
 
   let mcpClient: Awaited<ReturnType<typeof createSearchMcpClient>> | null = null
 
@@ -79,12 +117,13 @@ export async function POST(req: NextRequest) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('[api/search]', message)
 
-    if (message.includes('Missing env')) {
+    if (message.includes('Missing env') || message.includes('must use HTTPS')) {
       return Response.json({ error: 'Search is not configured' }, { status: 500 })
     }
 
     return Response.json({ error: 'Search failed' }, { status: 502 })
   } finally {
+    releaseSlot(id)
     await mcpClient?.close().catch(() => {})
   }
 }

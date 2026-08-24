@@ -19,7 +19,7 @@ export type ModelOutput = z.infer<typeof ModelOutputSchema>
 
 // Search request (constraints are fine here — not passed to OpenAI)
 export const SearchRequestSchema = z.object({
-  query: z.string().min(1).max(200).trim(),
+  query: z.string().trim().min(1).max(200),
   sort: z.enum(['relevance', 'newest', 'duration']).default('relevance'),
 })
 
