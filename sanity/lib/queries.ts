@@ -135,3 +135,24 @@ export const CATEGORIES_LIST_QUERY = defineQuery(`
     description
   }
 `)
+
+export const LESSONS_BY_IDS_QUERY = defineQuery(`
+  *[_type == "lesson" && _id in $ids] {
+    _id,
+    _createdAt,
+    title,
+    "slug": slug.current,
+    duration,
+    keyPoints,
+    "course": *[_type == "course" && references(^._id)][0] {
+      _id,
+      title,
+      "slug": slug.current,
+      modules[]{
+        _key,
+        title,
+        "lessonIds": lessons[]->._id
+      }
+    }
+  }
+`)
