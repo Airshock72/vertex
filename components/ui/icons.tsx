@@ -240,6 +240,62 @@ export function TargetIcon({ size = 16, className }: IconProps) {
   );
 }
 
+export function PlayIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg {...svg(size)} className={className}>
+      <polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function ArrowLeftIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg {...svg(size)} className={className}>
+      <path d="M19 12H5" />
+      <path d="m12 19-7-7 7-7" />
+    </svg>
+  );
+}
+
+export function CodeIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg {...svg(size)} className={className}>
+      <polyline points="16 18 22 12 16 6" />
+      <polyline points="8 6 2 12 8 18" />
+    </svg>
+  );
+}
+
+export function LinkIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg {...svg(size)} className={className}>
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+}
+
+export function FolderGitIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg {...svg(size)} className={className}>
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="2" />
+      <path d="M14 13h3" />
+      <path d="M9 13H7" />
+    </svg>
+  );
+}
+
+export function PresentationIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg {...svg(size)} className={className}>
+      <path d="M2 3h20" />
+      <path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3" />
+      <path d="m7 21 5-5 5 5" />
+    </svg>
+  );
+}
+
 export function SettingsIcon({ size = 16, className }: IconProps) {
   return (
     <svg {...svg(size)} className={className}>
