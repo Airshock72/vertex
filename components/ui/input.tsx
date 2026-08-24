@@ -35,9 +35,10 @@ export function SearchInput({
           className="h-20 w-full rounded-xl border border-neutral-200 bg-white pl-14 pr-28 text-lg text-neutral-900 placeholder:text-neutral-400 outline-none focus:border-primary-400 transition-colors shadow-md"
           {...props}
         />
-        <kbd className="absolute right-5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-neutral-400 bg-neutral-100 border border-neutral-200 rounded-md px-2.5 py-1.5 font-sans select-none">
-          ⌘K
-        </kbd>
+        <SearchIcon
+          size={20}
+          className="absolute right-5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
+        />
       </div>
     );
   }
@@ -54,9 +55,10 @@ export function SearchInput({
         className={`${fieldBase} pl-9 pr-16`}
         {...props}
       />
-      <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-neutral-400 font-sans select-none">
-        ⌘K
-      </kbd>
+      <SearchIcon
+        size={14}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"
+      />
     </div>
   );
 }
