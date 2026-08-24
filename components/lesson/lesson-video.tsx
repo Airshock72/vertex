@@ -26,6 +26,7 @@ export function LessonVideo({
 }: LessonVideoProps) {
   const searchParams = useSearchParams();
   const capturedRef = useRef(false);
+  const lastCapturedKeyRef = useRef<string | null>(null);
 
   const rawT = searchParams.get("t");
   const startSeconds = rawT
@@ -63,8 +64,12 @@ export function LessonVideo({
   // fire capture if auto-play is active. Ref mutation and posthog.capture are both
   // safe in effects; no setState here.
   useEffect(() => {
+    const key = `${lessonSlug}:${startSeconds}`;
     capturedRef.current = false;
-    if (autoPlayOnLoad) captureVideoPlayed();
+    if (autoPlayOnLoad && lastCapturedKeyRef.current !== key) {
+      lastCapturedKeyRef.current = key;
+      captureVideoPlayed();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonSlug, startSeconds]);
 
