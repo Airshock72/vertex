@@ -21,14 +21,26 @@ const CONCURRENCY_MAX = 2
 type ClientState = { timestamps: number[]; active: number }
 const clientStates = new Map<string, ClientState>()
 
+// x-real-ip is set by trusted reverse proxies and not forwarded from clients.
+// Fall back to the rightmost x-forwarded-for entry, which a trusted proxy appends
+// (the leftmost is client-supplied and can be rotated to evade per-client limits).
 function clientId(req: NextRequest): string {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const realIp = req.headers.get('x-real-ip')?.trim()
+  if (realIp) return realIp
+  const forwarded = req.headers.get('x-forwarded-for')
+  if (forwarded) {
+    const last = forwarded.split(',').at(-1)?.trim()
+    if (last) return last
+  }
+  return 'unknown'
 }
 
 function acquireSlot(id: string): 'ok' | 'rate' | 'concurrency' {
   const now = Date.now()
   const s = clientStates.get(id) ?? { timestamps: [], active: 0 }
   s.timestamps = s.timestamps.filter((t) => now - t < RATE_WINDOW_MS)
+  // Evict idle entries so the map does not grow without bound
+  if (s.timestamps.length === 0 && s.active === 0) clientStates.delete(id)
   if (s.active >= CONCURRENCY_MAX) { clientStates.set(id, s); return 'concurrency' }
   if (s.timestamps.length >= RATE_MAX) { clientStates.set(id, s); return 'rate' }
   s.timestamps.push(now)
@@ -39,7 +51,9 @@ function acquireSlot(id: string): 'ok' | 'rate' | 'concurrency' {
 
 function releaseSlot(id: string): void {
   const s = clientStates.get(id)
-  if (s) s.active = Math.max(0, s.active - 1)
+  if (!s) return
+  s.active = Math.max(0, s.active - 1)
+  if (s.active === 0 && s.timestamps.length === 0) clientStates.delete(id)
 }
 
 export async function POST(req: NextRequest) {
