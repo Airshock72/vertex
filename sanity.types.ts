@@ -761,6 +761,28 @@ export type CATEGORIES_LIST_QUERY_RESULT = Array<{
   description: string | null;
 }>;
 
+// Source: ../sanity/lib/queries.ts
+// Variable: LESSONS_BY_IDS_QUERY
+// Query: *[_type == "lesson" && _id in $ids] {    _id,    _createdAt,    title,    "slug": slug.current,    duration,    keyPoints,    "course": *[_type == "course" && references(^._id)][0] {      _id,      title,      "slug": slug.current,      modules[]{        _key,        title,        "lessonIds": lessons[]->._id      }    }  }
+export type LESSONS_BY_IDS_QUERY_RESULT = Array<{
+  _id: string;
+  _createdAt: string;
+  title: string | null;
+  slug: string | null;
+  duration: number | null;
+  keyPoints: Array<string> | null;
+  course: {
+    _id: string;
+    title: string | null;
+    slug: string | null;
+    modules: Array<{
+      _key: string;
+      title: string | null;
+      lessonIds: Array<string> | null;
+    }> | null;
+  } | null;
+}>;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
@@ -773,6 +795,7 @@ declare module "@sanity/client" {
     "\n  *[_type == \"instructor\"] | order(name asc) {\n    _id,\n    name,\n    \"slug\": slug.current,\n    photo { asset-> },\n    expertise\n  }\n": INSTRUCTORS_LIST_QUERY_RESULT;
     "\n  *[_type == \"instructor\" && slug.current == $slug][0] {\n    _id,\n    name,\n    \"slug\": slug.current,\n    photo { asset->, alt },\n    expertise,\n    bio[],\n    \"courses\": *[_type == \"course\" && references(^._id)] | order(_createdAt desc) {\n      _id,\n      title,\n      \"slug\": slug.current,\n      coverImage { asset-> },\n      level,\n      studentCount,\n      summary\n    }\n  }\n": INSTRUCTOR_BY_SLUG_QUERY_RESULT;
     "\n  *[_type == \"category\"] | order(title asc) {\n    _id,\n    title,\n    \"slug\": slug.current,\n    description\n  }\n": CATEGORIES_LIST_QUERY_RESULT;
+    "\n  *[_type == \"lesson\" && _id in $ids] {\n    _id,\n    _createdAt,\n    title,\n    \"slug\": slug.current,\n    duration,\n    keyPoints,\n    \"course\": *[_type == \"course\" && references(^._id)][0] {\n      _id,\n      title,\n      \"slug\": slug.current,\n      modules[]{\n        _key,\n        title,\n        \"lessonIds\": lessons[]->._id\n      }\n    }\n  }\n": LESSONS_BY_IDS_QUERY_RESULT;
   }
 }
 

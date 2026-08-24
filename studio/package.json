@@ -8,7 +8,8 @@
     "deploy": "sanity deploy",
     "typegen": "sanity schemas extract && sanity typegen generate",
     "seed:import": "sanity dataset import scripts/seed/seed.ndjson --dataset development",
-    "seed:import:prod": "sanity dataset import scripts/seed/seed.ndjson --dataset production --replace"
+    "seed:import:prod": "sanity dataset import scripts/seed/seed.ndjson --dataset production --replace",
+    "context:import": "sanity dataset import scripts/context/vertex-search.ndjson --dataset production --replace"
   },
   "dependencies": {
     "@sanity/vision": "^5.31.2",
