@@ -219,7 +219,6 @@ export function LessonSidebar({
             <p className="text-[15px] font-medium text-neutral-900 truncate leading-tight">
               {course.title}
             </p>
-            <p className="text-[13px] text-neutral-500 mt-0.5">35% complete</p>
             <ProgressBar value={0} showLabel={false} className="mt-1.5 w-full" />
           </div>
         </div>

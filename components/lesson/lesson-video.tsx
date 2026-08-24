@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -25,7 +25,6 @@ export function LessonVideo({
   lessonTitle,
 }: LessonVideoProps) {
   const searchParams = useSearchParams();
-  const [playing, setPlaying] = useState(false);
   const capturedRef = useRef(false);
 
   const rawT = searchParams.get("t");
@@ -34,25 +33,31 @@ export function LessonVideo({
     : 0;
 
   const autoPlayOnLoad = startSeconds > 0;
-
-  useEffect(() => {
-    if (autoPlayOnLoad && !capturedRef.current) {
-      setPlaying(true);
-    }
-  }, [autoPlayOnLoad]);
-
+  // Seed from URL so the embed loads immediately without needing a setState in an effect.
+  const [playing, setPlaying] = useState(autoPlayOnLoad);
   const parsed = videoUrl ? parseVideoUrl(videoUrl) : null;
 
+  // Stable capture helper — guarded by capturedRef so it fires at most once.
+  const captureVideoPlayed = useCallback(() => {
+    if (capturedRef.current) return;
+    capturedRef.current = true;
+    posthog.capture("video_played", {
+      lesson_slug: lessonSlug,
+      lesson_title: lessonTitle,
+      start_seconds: startSeconds,
+      provider: parsed?.provider ?? "unknown",
+    });
+  }, [lessonSlug, lessonTitle, startSeconds, parsed?.provider]);
+
+  // Fire capture on mount when the URL carries a timestamp (auto-play path).
+  // setState is not called here — playing is seeded from useState below.
+  useEffect(() => {
+    if (autoPlayOnLoad) captureVideoPlayed();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function handlePlay() {
-    if (!capturedRef.current) {
-      capturedRef.current = true;
-      posthog.capture("video_played", {
-        lesson_slug: lessonSlug,
-        lesson_title: lessonTitle,
-        start_seconds: startSeconds,
-        provider: parsed?.provider ?? "unknown",
-      });
-    }
+    captureVideoPlayed();
     setPlaying(true);
   }
 

@@ -86,7 +86,11 @@ function splitLeadParagraph(notes: NotesBlock[] | null): {
 } {
   if (!notes || notes.length === 0) return { summary: "", bodyBlocks: [] };
   const [first, ...rest] = notes;
-  if (first._type !== "block") return { summary: "", bodyBlocks: notes };
+  const isNormalParagraph =
+    first._type === "block" &&
+    (first as { style?: string }).style === "normal" &&
+    (first as { listItem?: string }).listItem == null;
+  if (!isNormalParagraph) return { summary: "", bodyBlocks: notes };
   const text = ((first as { children?: { text?: string }[] }).children ?? [])
     .map((c) => c.text ?? "")
     .join("");
@@ -114,12 +118,14 @@ export default async function LessonPage({ params }: Props) {
     modTitle: string | null;
   };
   const allLessons: FlatLesson[] = modules.flatMap((mod, modIdx) =>
-    (mod.lessons ?? []).map((les, lesIdx) => ({
-      ...les,
-      modIdx,
-      lesIdx,
-      modTitle: mod.title,
-    }))
+    (mod.lessons ?? [])
+      .filter((les) => les.slug != null)
+      .map((les, lesIdx) => ({
+        ...les,
+        modIdx,
+        lesIdx,
+        modTitle: mod.title,
+      }))
   );
 
   const currentIdx = allLessons.findIndex((l) => l.slug === lesson.slug);
