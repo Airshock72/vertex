@@ -34,10 +34,20 @@ export function LessonVideo({
 
   const parsed = videoUrl ? parseVideoUrl(videoUrl) : null;
   const autoPlayOnLoad = startSeconds > 0 && parsed !== null;
-  // Seed from URL so the embed loads immediately without needing a setState in an effect.
+
+  // "Adjust state during rendering" pattern — resets playing when lesson or timestamp
+  // changes without calling setState inside an effect (avoids react-hooks/set-state-in-effect).
+  const [prevLessonSlug, setPrevLessonSlug] = useState(lessonSlug);
+  const [prevStartSeconds, setPrevStartSeconds] = useState(startSeconds);
   const [playing, setPlaying] = useState(autoPlayOnLoad);
 
-  // Stable capture helper — guarded by capturedRef so it fires at most once.
+  if (prevLessonSlug !== lessonSlug || prevStartSeconds !== startSeconds) {
+    setPrevLessonSlug(lessonSlug);
+    setPrevStartSeconds(startSeconds);
+    setPlaying(autoPlayOnLoad);
+  }
+
+  // Stable capture helper — guarded by capturedRef so it fires at most once per video load.
   const captureVideoPlayed = useCallback(() => {
     if (capturedRef.current) return;
     capturedRef.current = true;
@@ -49,12 +59,14 @@ export function LessonVideo({
     });
   }, [lessonSlug, lessonTitle, startSeconds, parsed?.provider]);
 
-  // Fire capture on mount when the URL carries a timestamp (auto-play path).
-  // setState is not called here — playing is seeded from useState below.
+  // On mount and on any lesson/timestamp navigation: reset the capture guard, then
+  // fire capture if auto-play is active. Ref mutation and posthog.capture are both
+  // safe in effects; no setState here.
   useEffect(() => {
+    capturedRef.current = false;
     if (autoPlayOnLoad) captureVideoPlayed();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [lessonSlug, startSeconds]);
 
   function handlePlay() {
     captureVideoPlayed();
