@@ -34,17 +34,20 @@ export function LessonVideo({
     : 0;
 
   const parsed = videoUrl ? parseVideoUrl(videoUrl) : null;
+  const videoId = parsed ? `${parsed.provider}:${parsed.id}` : null;
   const autoPlayOnLoad = startSeconds > 0 && parsed !== null;
 
-  // "Adjust state during rendering" pattern — resets playing when lesson or timestamp
-  // changes without calling setState inside an effect (avoids react-hooks/set-state-in-effect).
+  // "Adjust state during rendering" pattern — resets playing when lesson, timestamp,
+  // or video identity changes without calling setState inside an effect.
   const [prevLessonSlug, setPrevLessonSlug] = useState(lessonSlug);
   const [prevStartSeconds, setPrevStartSeconds] = useState(startSeconds);
+  const [prevVideoId, setPrevVideoId] = useState(videoId);
   const [playing, setPlaying] = useState(autoPlayOnLoad);
 
-  if (prevLessonSlug !== lessonSlug || prevStartSeconds !== startSeconds) {
+  if (prevLessonSlug !== lessonSlug || prevStartSeconds !== startSeconds || prevVideoId !== videoId) {
     setPrevLessonSlug(lessonSlug);
     setPrevStartSeconds(startSeconds);
+    setPrevVideoId(videoId);
     setPlaying(autoPlayOnLoad);
   }
 
@@ -64,14 +67,14 @@ export function LessonVideo({
   // fire capture if auto-play is active. Ref mutation and posthog.capture are both
   // safe in effects; no setState here.
   useEffect(() => {
-    const key = `${lessonSlug}:${startSeconds}`;
+    const key = `${lessonSlug}:${videoId ?? ""}:${startSeconds}`;
     capturedRef.current = false;
     if (autoPlayOnLoad && lastCapturedKeyRef.current !== key) {
       lastCapturedKeyRef.current = key;
       captureVideoPlayed();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lessonSlug, startSeconds]);
+  }, [lessonSlug, startSeconds, videoId]);
 
   function handlePlay() {
     captureVideoPlayed();
