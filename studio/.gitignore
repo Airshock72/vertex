@@ -4,3 +4,7 @@ dist/
 schema.json
 .env
 .env.local
+
+# Video ingestion pipeline
+scripts/ingest/.cache/
+scripts/ingest/videos.ndjson
