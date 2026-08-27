@@ -39,7 +39,7 @@ function SkeletonCard() {
 export function SearchResults() {
   const params = useSearchParams();
   const router = useRouter();
-  const q = params.get("q") ?? "";
+  const q = (params.get("q") ?? "").trim();
   const sort = (params.get("sort") ?? "relevance") as "relevance" | "newest" | "duration";
 
   const [retryKey, setRetryKey] = useState(0);
@@ -149,6 +149,7 @@ export function SearchResults() {
         </p>
         <div className="relative w-40 shrink-0">
           <select
+            aria-label="Sort results"
             value={sort}
             onChange={handleSortChange}
             className="h-11 w-full rounded-md border border-neutral-200 bg-white px-3 pr-8 text-sm text-neutral-900 appearance-none outline-none focus:border-primary-400 transition-colors cursor-pointer"
@@ -170,18 +171,15 @@ export function SearchResults() {
       {results.length === 0 ? (
         <SearchEmptyState />
       ) : (
-        <>
-          <div className="space-y-4">
-            {results.map((result, i) =>
-              result.kind === "video" ? (
-                <VideoResultCard key={`${result.lessonId}-${i}`} result={result} />
-              ) : (
-                <LessonResultCard key={`${result.lessonId}-${i}`} result={result} />
-              )
-            )}
-          </div>
-          <SearchEmptyState />
-        </>
+        <div className="space-y-4">
+          {results.map((result, i) =>
+            result.kind === "video" ? (
+              <VideoResultCard key={`${result.lessonId}-${i}`} result={result} />
+            ) : (
+              <LessonResultCard key={`${result.lessonId}-${i}`} result={result} />
+            )
+          )}
+        </div>
       )}
     </>
   );

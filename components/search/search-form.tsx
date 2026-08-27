@@ -52,6 +52,7 @@ export function SearchForm({
           <input
             ref={inputRef}
             type="search"
+            aria-label="Search"
             defaultValue={defaultValue}
             placeholder={placeholder ?? "Ask anything about your learning..."}
             maxLength={MAX_QUERY_LENGTH}
@@ -76,6 +77,7 @@ export function SearchForm({
         <input
           ref={inputRef}
           type="search"
+          aria-label="Search"
           defaultValue={defaultValue}
           placeholder={placeholder ?? "Search anything..."}
           maxLength={MAX_QUERY_LENGTH}
