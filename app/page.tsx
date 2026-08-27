@@ -11,7 +11,7 @@ import { ArrowRightIcon, BellIcon, StarIcon } from "@/components/ui/icons";
 import { Navbar } from "@/components/ui/navigation";
 import { NavbarAuth } from "@/components/ui/navbar-auth";
 import { CourseCard } from "@/components/ui/card";
-import { SearchInput } from "@/components/ui/input";
+import { SearchForm } from "@/components/search/search-form";
 
 /* ── Decoration ──────────────────────────────────────────── */
 
@@ -132,8 +132,8 @@ export default async function Home() {
                 </Link>
               </div>
 
-              <SearchInput
-                variant="lg"
+              <SearchForm
+                size="lg"
                 placeholder="Ask anything about your learning..."
                 className="max-w-3xl mx-auto"
               />

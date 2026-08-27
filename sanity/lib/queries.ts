@@ -144,10 +144,12 @@ export const LESSONS_BY_IDS_QUERY = defineQuery(`
     "slug": slug.current,
     duration,
     keyPoints,
+    "thumbnailRef": thumbnail.asset._ref,
     "course": *[_type == "course" && references(^._id)][0] {
       _id,
       title,
       "slug": slug.current,
+      "coverImageRef": coverImage.asset._ref,
       modules[]{
         _key,
         title,
