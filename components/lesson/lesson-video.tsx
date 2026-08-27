@@ -14,6 +14,7 @@ interface LessonVideoProps {
   duration: number | null;
   lessonSlug: string;
   lessonTitle: string;
+  courseSlug?: string;
 }
 
 export function LessonVideo({
@@ -23,10 +24,14 @@ export function LessonVideo({
   duration,
   lessonSlug,
   lessonTitle,
+  courseSlug = "",
 }: LessonVideoProps) {
   const searchParams = useSearchParams();
   const capturedRef = useRef(false);
   const lastCapturedKeyRef = useRef<string | null>(null);
+  const completedRef = useRef(false);
+  const playStartWallRef = useRef<number | null>(null);
+  const depthIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const rawT = searchParams.get("t");
   const startSeconds = rawT
@@ -58,10 +63,22 @@ export function LessonVideo({
     posthog.capture("video_played", {
       lesson_slug: lessonSlug,
       lesson_title: lessonTitle,
+      course_slug: courseSlug,
       start_seconds: startSeconds,
       provider: parsed?.provider ?? "unknown",
     });
-  }, [lessonSlug, lessonTitle, startSeconds, parsed?.provider]);
+    // Fire resume event when the learner deep-links into a specific timestamp
+    // (e.g. clicking "Watch from X:XX" on a search result card)
+    if (startSeconds > 0) {
+      posthog.capture("lesson_resumed", {
+        lesson_slug: lessonSlug,
+        lesson_title: lessonTitle,
+        course_slug: courseSlug,
+        start_seconds: startSeconds,
+        source: "deep_link",
+      });
+    }
+  }, [lessonSlug, lessonTitle, courseSlug, startSeconds, parsed?.provider]);
 
   // On mount and on any lesson/timestamp navigation: reset the capture guard, then
   // fire capture if auto-play is active. Ref mutation and posthog.capture are both
@@ -69,12 +86,60 @@ export function LessonVideo({
   useEffect(() => {
     const key = `${lessonSlug}:${videoId ?? ""}:${startSeconds}`;
     capturedRef.current = false;
+    completedRef.current = false;
     if (autoPlayOnLoad && lastCapturedKeyRef.current !== key) {
       lastCapturedKeyRef.current = key;
       captureVideoPlayed();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonSlug, startSeconds, videoId]);
+
+  // Wall-clock watch-depth heuristic: when the player is visible and playing,
+  // accumulate elapsed time against the lesson duration. At 95% → lesson_completed.
+  // Inaccurate when the learner pauses, seeks, or changes speed (no player API).
+  useEffect(() => {
+    if (!playing || !duration || duration <= 0) {
+      if (depthIntervalRef.current) {
+        clearInterval(depthIntervalRef.current);
+        depthIntervalRef.current = null;
+      }
+      return;
+    }
+
+    playStartWallRef.current = Date.now();
+
+    depthIntervalRef.current = setInterval(() => {
+      if (!playStartWallRef.current || document.visibilityState !== "visible") return;
+      if (completedRef.current) {
+        clearInterval(depthIntervalRef.current!);
+        depthIntervalRef.current = null;
+        return;
+      }
+      const elapsed = (Date.now() - playStartWallRef.current) / 1000;
+      const watchedSeconds = elapsed + startSeconds;
+      if (watchedSeconds / duration >= 0.95) {
+        completedRef.current = true;
+        posthog.capture("lesson_completed", {
+          lesson_slug: lessonSlug,
+          lesson_title: lessonTitle,
+          course_slug: courseSlug,
+          duration_seconds: duration,
+          source: "video_watch_depth",
+          measurement: "elapsed_time",
+        });
+        clearInterval(depthIntervalRef.current!);
+        depthIntervalRef.current = null;
+      }
+    }, 5000);
+
+    return () => {
+      if (depthIntervalRef.current) {
+        clearInterval(depthIntervalRef.current);
+        depthIntervalRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing]);
 
   function handlePlay() {
     captureVideoPlayed();

@@ -294,6 +294,7 @@ export default async function LessonPage({ params }: Props) {
                 duration={lesson.duration ?? null}
                 lessonSlug={slug}
                 lessonTitle={lesson.title ?? ""}
+                courseSlug={course?.slug ?? ""}
               />
             </Suspense>
           </div>
