@@ -116,8 +116,7 @@ export function LessonVideo({
         return;
       }
       const elapsed = (Date.now() - playStartWallRef.current) / 1000;
-      const watchedSeconds = elapsed + startSeconds;
-      if (watchedSeconds / duration >= 0.95) {
+      if (elapsed / duration >= 0.95) {
         completedRef.current = true;
         posthog.capture("lesson_completed", {
           lesson_slug: lessonSlug,
@@ -138,8 +137,7 @@ export function LessonVideo({
         depthIntervalRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playing]);
+  }, [playing, duration, lessonSlug, lessonTitle, courseSlug]);
 
   function handlePlay() {
     captureVideoPlayed();
