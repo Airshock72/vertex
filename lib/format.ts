@@ -26,6 +26,10 @@ export function formatTimestamp(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+export function pluralize(count: number, singular: string, plural = `${singular}s`): string {
+  return count === 1 ? singular : plural;
+}
+
 export const LEVEL_DISPLAY: Record<
   string,
   "Beginner" | "Intermediate" | "Advanced"
