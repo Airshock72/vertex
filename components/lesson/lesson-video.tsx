@@ -30,7 +30,8 @@ export function LessonVideo({
   const capturedRef = useRef(false);
   const lastCapturedKeyRef = useRef<string | null>(null);
   const completedRef = useRef(false);
-  const playStartWallRef = useRef<number | null>(null);
+  const watchedSecondsRef = useRef(0);
+  const lastTickRef = useRef<number | null>(null);
   const depthIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const rawT = searchParams.get("t");
@@ -94,9 +95,11 @@ export function LessonVideo({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonSlug, startSeconds, videoId]);
 
-  // Wall-clock watch-depth heuristic: when the player is visible and playing,
-  // accumulate elapsed time against the lesson duration. At 95% → lesson_completed.
-  // Inaccurate when the learner pauses, seeks, or changes speed (no player API).
+  // Visible-playback watch-depth heuristic: while the player is playing and the tab
+  // is visible, accumulate only the visible elapsed time against the lesson duration.
+  // At 95% → lesson_completed. Time spent on a hidden/backgrounded tab is never
+  // counted, and the URL deep-link start offset is never credited as watched time.
+  // Still inaccurate when the learner pauses, seeks, or changes speed (no player API).
   useEffect(() => {
     if (!playing || !duration || duration <= 0) {
       if (depthIntervalRef.current) {
@@ -106,17 +109,28 @@ export function LessonVideo({
       return;
     }
 
-    playStartWallRef.current = Date.now();
+    watchedSecondsRef.current = 0;
+    lastTickRef.current = Date.now();
 
     depthIntervalRef.current = setInterval(() => {
-      if (!playStartWallRef.current || document.visibilityState !== "visible") return;
       if (completedRef.current) {
         clearInterval(depthIntervalRef.current!);
         depthIntervalRef.current = null;
         return;
       }
-      const elapsed = (Date.now() - playStartWallRef.current) / 1000;
-      if (elapsed / duration >= 0.95) {
+      if (document.visibilityState !== "visible") {
+        // Pause accumulation while hidden; resume without counting the gap.
+        lastTickRef.current = null;
+        return;
+      }
+      const now = Date.now();
+      if (lastTickRef.current === null) {
+        lastTickRef.current = now;
+        return;
+      }
+      watchedSecondsRef.current += (now - lastTickRef.current) / 1000;
+      lastTickRef.current = now;
+      if (watchedSecondsRef.current / duration >= 0.95) {
         completedRef.current = true;
         posthog.capture("lesson_completed", {
           lesson_slug: lessonSlug,
@@ -124,7 +138,7 @@ export function LessonVideo({
           course_slug: courseSlug,
           duration_seconds: duration,
           source: "video_watch_depth",
-          measurement: "elapsed_time",
+          measurement: "visible_playback_time",
         });
         clearInterval(depthIntervalRef.current!);
         depthIntervalRef.current = null;
@@ -137,7 +151,7 @@ export function LessonVideo({
         depthIntervalRef.current = null;
       }
     };
-  }, [playing, duration, lessonSlug, lessonTitle, courseSlug]);
+  }, [playing, duration, lessonSlug, lessonTitle, courseSlug, startSeconds]);
 
   function handlePlay() {
     captureVideoPlayed();
