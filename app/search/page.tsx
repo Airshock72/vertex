@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 import { Navbar } from "@/components/ui/navigation";
 import { NavbarAuth } from "@/components/ui/navbar-auth";
-import { BellIcon } from "@/components/ui/icons";
+import { NotificationBell } from "@/components/ui/coming-soon";
 import { SearchForm } from "@/components/search/search-form";
 import { SearchResults } from "@/components/search/search-results";
 
@@ -34,16 +34,11 @@ export default async function SearchPage({ searchParams }: Props) {
           <Navbar
             links={[
               { label: "Courses", href: "/courses" },
-              { label: "My Learning", href: "/my-learning" },
+              { label: "My Learning", href: "/my-learning", comingSoon: true },
             ]}
             rightSlot={
               <div className="flex items-center gap-3">
-                <button
-                  aria-label="Notifications"
-                  className="w-10 h-10 flex items-center justify-center text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400"
-                >
-                  <BellIcon size={20} />
-                </button>
+                <NotificationBell />
                 <NavbarAuth />
               </div>
             }

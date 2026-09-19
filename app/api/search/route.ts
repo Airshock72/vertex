@@ -1,11 +1,8 @@
 import { type NextRequest } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { generateText, Output, isStepCount } from 'ai'
-import { getSearchModel } from '@/lib/search/model'
-import { createSearchMcpClient, fetchInitialContext } from '@/lib/search/mcp'
-import { SYSTEM_PROMPT } from '@/lib/search/system-prompt'
+import { keywordSearchHits } from '@/lib/search/keyword-search'
 import { groundHits } from '@/lib/search/ground'
-import { SearchRequestSchema, ModelOutputSchema } from '@/lib/search/types'
+import { SearchRequestSchema } from '@/lib/search/types'
 import { getPostHogClient } from '@/lib/posthog-server'
 
 export const runtime = 'nodejs'
@@ -14,8 +11,8 @@ export const maxDuration = 60
 
 // In-process rate and concurrency limiter (single-process deployments; resets on cold start)
 const RATE_WINDOW_MS = 60_000
-const RATE_MAX = 10
-const CONCURRENCY_MAX = 2
+const RATE_MAX = 30
+const CONCURRENCY_MAX = 4
 
 type ClientState = { timestamps: number[]; active: number }
 const clientStates = new Map<string, ClientState>()
@@ -91,43 +88,8 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'Too many concurrent requests' }, { status: 429 })
   }
 
-  let mcpClient: Awaited<ReturnType<typeof createSearchMcpClient>> | null = null
-
   try {
-    // allSettled so a resolved MCP client is always assigned before any error
-    // is rethrown — the finally block can then close it reliably.
-    const [contextOutcome, clientOutcome] = await Promise.allSettled([
-      fetchInitialContext(),
-      createSearchMcpClient(),
-    ])
-    if (clientOutcome.status === 'fulfilled') mcpClient = clientOutcome.value
-    if (contextOutcome.status === 'rejected') throw contextOutcome.reason
-    if (clientOutcome.status === 'rejected') throw clientOutcome.reason
-    const initialContext = (contextOutcome as PromiseFulfilledResult<string>).value
-
-    const allMcpTools = await mcpClient!.tools()
-    // Exclude initial_context — schema is already injected into the system prompt
-    const mcpTools = Object.fromEntries(
-      Object.entries(allMcpTools).filter(([k]) => k !== 'initial_context'),
-    )
-
-    const systemPrompt = `${SYSTEM_PROMPT}\n\n## Schema context\n\n${initialContext}`
-
-    const result = await generateText({
-      model: getSearchModel(),
-      system: systemPrompt,
-      prompt: query,
-      tools: mcpTools as Parameters<typeof generateText>[0]['tools'],
-      stopWhen: isStepCount(6),
-      output: Output.object({ schema: ModelOutputSchema }),
-      // Fail fast on hard errors (no credits, bad key) instead of retrying with backoff;
-      // one retry still tolerates a transient MCP/model blip.
-      maxRetries: 1,
-    })
-
-    const modelOutput = result.output
-
-    const results = await groundHits(modelOutput.hits, sort)
+    const results = await groundHits(await keywordSearchHits(query), sort)
 
     const ph = getPostHogClient()
     if (ph) {
@@ -158,14 +120,13 @@ export async function POST(req: NextRequest) {
       query,
       sort,
       count: results.length,
-      reply: modelOutput.reply,
+      reply: '',
       results,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('[api/search]', message)
 
-    const isUnconfigured = message.includes('Missing env') || message.includes('must use HTTPS')
     const ph = getPostHogClient()
     if (ph) {
       try {
@@ -175,7 +136,7 @@ export async function POST(req: NextRequest) {
           properties: {
             query,
             sort,
-            reason: isUnconfigured ? 'unconfigured' : 'upstream',
+            reason: 'upstream',
             ...(phSessionId ? { $session_id: phSessionId } : {}),
           },
         })
@@ -183,13 +144,8 @@ export async function POST(req: NextRequest) {
       } catch {}
     }
 
-    if (isUnconfigured) {
-      return Response.json({ error: 'Search is not configured' }, { status: 500 })
-    }
-
-    return Response.json({ error: 'Search failed' }, { status: 502 })
+    return Response.json({ error: 'Search failed' }, { status: 500 })
   } finally {
     releaseSlot(id)
-    await mcpClient?.close().catch(() => {})
   }
 }

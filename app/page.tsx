@@ -7,7 +7,8 @@ import { urlFor } from "@/sanity/lib/image";
 import type { COURSES_LIST_QUERY_RESULT } from "@/sanity.types";
 import { LEVEL_DISPLAY, formatDuration } from "@/lib/format";
 
-import { ArrowRightIcon, BellIcon, StarIcon } from "@/components/ui/icons";
+import { ArrowRightIcon, StarIcon } from "@/components/ui/icons";
+import { NotificationBell } from "@/components/ui/coming-soon";
 import { Navbar } from "@/components/ui/navigation";
 import { NavbarAuth } from "@/components/ui/navbar-auth";
 import { CourseCard } from "@/components/ui/card";
@@ -75,16 +76,11 @@ export default async function Home() {
           <Navbar
             links={[
               { label: "Courses", href: "/courses" },
-              { label: "My Learning", href: "/my-learning" },
+              { label: "My Learning", href: "/my-learning", comingSoon: true },
             ]}
             rightSlot={
               <div className="flex items-center gap-3">
-                <button
-                  aria-label="Notifications"
-                  className="w-10 h-10 flex items-center justify-center text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400"
-                >
-                  <BellIcon size={20} />
-                </button>
+                <NotificationBell />
                 <NavbarAuth />
               </div>
             }

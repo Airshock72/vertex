@@ -345,7 +345,7 @@ export default function DesignSystemPage() {
             <Navbar
               links={[
                 { label: "Courses",     href: "/courses",     active: true },
-                { label: "My Learning", href: "/my-learning"               },
+                { label: "My Learning", href: "/my-learning", comingSoon: true },
               ]}
             />
           </div>

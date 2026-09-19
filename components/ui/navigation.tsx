@@ -1,14 +1,9 @@
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon, VertexIcon } from "./icons";
+import { ComingSoonNavLinks, type NavLink } from "./coming-soon";
 
 /* ── Navbar ──────────────────────────────────────────────── */
-
-interface NavLink {
-  label: string;
-  href: string;
-  active?: boolean;
-}
 
 interface NavbarProps {
   links?: NavLink[];
@@ -24,24 +19,7 @@ export function Navbar({ links = [], className = "", rightSlot }: NavbarProps) {
           <VertexIcon size={22} />
           <span className="text-base font-semibold text-neutral-900">Vertex</span>
         </Link>
-        {links.length > 0 && (
-          <ul className="flex items-center gap-6">
-            {links.map((link) => (
-              <li key={link.href}>
-                <a
-                  href={link.href}
-                  className={`text-sm font-medium transition-colors ${
-                    link.active
-                      ? "text-primary-500"
-                      : "text-neutral-700 hover:text-neutral-900"
-                  }`}
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+        {links.length > 0 && <ComingSoonNavLinks links={links} />}
       </div>
       {rightSlot && <div className="flex items-center">{rightSlot}</div>}
     </nav>

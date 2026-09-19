@@ -17,13 +17,11 @@ import { NavbarAuth } from "@/components/ui/navbar-auth";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import {
-  BellIcon,
   BarChartIcon,
   ClockIcon,
   LayersIcon,
   ArrowRightIcon,
   UsersIcon,
-  BookmarkIcon,
   ZapIcon,
   WrenchIcon,
   PackageIcon,
@@ -36,6 +34,7 @@ import {
   LockIcon,
 } from "@/components/ui/icons";
 
+import { NotificationBell, BookmarkButton } from "@/components/ui/coming-soon";
 import CourseModules, { CoursePageTracker } from "./CourseModules";
 import { formatDuration, formatCount, formatLevel } from "@/lib/format";
 
@@ -134,17 +133,11 @@ export default async function CoursePage({ params }: Props) {
           <Navbar
             links={[
               { label: "Courses", href: "/courses" },
-              { label: "My Learning", href: "/my-learning" },
+              { label: "My Learning", href: "/my-learning", comingSoon: true },
             ]}
             rightSlot={
               <div className="flex items-center gap-3">
-                <button
-                  aria-label="Notifications"
-                  disabled
-                  className="w-10 h-10 flex items-center justify-center text-neutral-400 rounded-full cursor-not-allowed"
-                >
-                  <BellIcon size={20} />
-                </button>
+                <NotificationBell variant="muted" />
                 <NavbarAuth />
               </div>
             }
@@ -241,14 +234,7 @@ export default async function CoursePage({ params }: Props) {
                 Continue Learning
                 <ArrowRightIcon size={18} />
               </Link>
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center gap-2.5 h-14 px-6 border border-canvas-line bg-canvas rounded-xl text-base font-medium text-neutral-400 cursor-not-allowed"
-              >
-                <BookmarkIcon size={18} />
-                Bookmark
-              </button>
+              <BookmarkButton variant="course" />
             </div>
           </div>
         </section>

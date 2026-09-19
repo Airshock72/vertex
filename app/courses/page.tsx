@@ -11,7 +11,7 @@ import { LEVEL_DISPLAY, formatDuration } from "@/lib/format";
 import { Navbar, Breadcrumbs } from "@/components/ui/navigation";
 import { NavbarAuth } from "@/components/ui/navbar-auth";
 import { CourseCard } from "@/components/ui/card";
-import { BellIcon } from "@/components/ui/icons";
+import { NotificationBell } from "@/components/ui/coming-soon";
 import { CatalogViewTracker } from "@/components/ui/catalog-tracker";
 
 export const metadata: Metadata = {
@@ -35,16 +35,11 @@ export default async function CoursesPage() {
           <Navbar
             links={[
               { label: "Courses", href: "/courses", active: true },
-              { label: "My Learning", href: "/my-learning" },
+              { label: "My Learning", href: "/my-learning", comingSoon: true },
             ]}
             rightSlot={
               <div className="flex items-center gap-3">
-                <button
-                  aria-label="Notifications"
-                  className="w-10 h-10 flex items-center justify-center text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400"
-                >
-                  <BellIcon size={20} />
-                </button>
+                <NotificationBell />
                 <NavbarAuth />
               </div>
             }

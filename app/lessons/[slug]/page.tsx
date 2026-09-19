@@ -15,12 +15,11 @@ import { Navbar, Breadcrumbs } from "@/components/ui/navigation";
 import { NavbarAuth } from "@/components/ui/navbar-auth";
 import { Badge } from "@/components/ui/badge";
 import {
-  BellIcon,
   BarChartIcon,
   ClockIcon,
   UsersIcon,
-  BookmarkIcon,
 } from "@/components/ui/icons";
+import { NotificationBell, BookmarkButton } from "@/components/ui/coming-soon";
 import { LessonSidebar } from "@/components/lesson/lesson-sidebar";
 import { LessonVideo } from "@/components/lesson/lesson-video";
 import { LessonTabs } from "@/components/lesson/lesson-tabs";
@@ -171,17 +170,11 @@ export default async function LessonPage({ params }: Props) {
           <Navbar
             links={[
               { label: "Courses", href: "/courses" },
-              { label: "My Learning", href: "/my-learning" },
+              { label: "My Learning", href: "/my-learning", comingSoon: true },
             ]}
             rightSlot={
               <div className="flex items-center gap-3">
-                <button
-                  aria-label="Notifications"
-                  disabled
-                  className="w-10 h-10 flex items-center justify-center text-neutral-400 rounded-full cursor-not-allowed"
-                >
-                  <BellIcon size={20} />
-                </button>
+                <NotificationBell variant="muted" />
                 <NavbarAuth />
               </div>
             }
@@ -246,13 +239,7 @@ export default async function LessonPage({ params }: Props) {
             >
               {lesson.title}
             </h1>
-            <button
-              type="button"
-              aria-label="Bookmark lesson"
-              className="shrink-0 w-10 h-10 border border-canvas-line rounded-lg flex items-center justify-center text-neutral-400 hover:text-neutral-600 hover:border-neutral-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-            >
-              <BookmarkIcon size={18} />
-            </button>
+            <BookmarkButton variant="lesson" />
           </div>
 
           {/* Summary */}

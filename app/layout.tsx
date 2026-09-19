@@ -4,6 +4,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import React from "react";
 import "./globals.css";
 import { PostHogIdentify } from "@/components/ui/posthog-identify";
+import { ComingSoonProvider } from "@/components/ui/coming-soon";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
@@ -27,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full flex flex-col bg-white text-neutral-900">
         <ClerkProvider>
           <PostHogIdentify />
-          {children}
+          <ComingSoonProvider>{children}</ComingSoonProvider>
         </ClerkProvider>
       </body>
     </html>

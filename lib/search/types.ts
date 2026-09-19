@@ -1,21 +1,13 @@
 import { z } from 'zod'
 
-// Model-facing schema — no optional fields, no length constraints (OpenAI structured outputs requirement)
-export const ModelHitSchema = z.object({
-  lessonId: z.string(),
-  kind: z.enum(['lesson', 'video']),
-  reason: z.string(),
-  rank: z.number(),
-  startSeconds: z.number().nullable(),
-})
-
-export const ModelOutputSchema = z.object({
-  hits: z.array(ModelHitSchema),
-  reply: z.string(),
-})
-
-export type ModelHit = z.infer<typeof ModelHitSchema>
-export type ModelOutput = z.infer<typeof ModelOutputSchema>
+// Internal hit shape consumed by groundHits to build result cards.
+export type ModelHit = {
+  lessonId: string
+  kind: 'lesson' | 'video'
+  reason: string
+  rank: number
+  startSeconds: number | null
+}
 
 // Search request (constraints are fine here — not passed to OpenAI)
 export const SearchRequestSchema = z.object({

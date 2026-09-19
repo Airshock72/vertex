@@ -159,7 +159,9 @@ export function ArrowRightIcon({ size = 20, className }: IconProps) {
 export function VertexIcon({ size = 24, className }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-      <polygon points="12 3 22 21 2 21" fill="#F97316" />
+      {/* Layered mountain peak — the "vertex" / apex */}
+      <path d="M12 3 L22 21 H2 Z" fill="#F97316" />
+      <path d="M12 11 L17.5 21 H6.5 Z" fill="#FDBA74" />
     </svg>
   );
 }
