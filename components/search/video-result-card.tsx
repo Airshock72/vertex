@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import posthog from "posthog-js";
 import { urlFor } from "@/sanity/lib/image";
 import { Badge } from "@/components/ui/badge";
 import { PlayIcon, PlayCircleIcon, ChevronRightIcon } from "@/components/ui/icons";
@@ -46,11 +49,16 @@ function FolderMetaIcon() {
 
 interface VideoResultCardProps {
   result: VideoResult;
+  searchQuery?: string;
+  searchSort?: string;
+  position?: number;
 }
 
-export function VideoResultCard({ result }: VideoResultCardProps) {
+export function VideoResultCard({ result, searchQuery, searchSort, position }: VideoResultCardProps) {
   const {
+    lessonSlug,
     lessonTitle,
+    courseSlug,
     courseTitle,
     moduleTitle,
     label,
@@ -60,11 +68,27 @@ export function VideoResultCard({ result }: VideoResultCardProps) {
     thumbnailRef,
     courseIconRef,
     duration,
+    rank,
   } = result;
+
+  function handleClick() {
+    posthog.capture("search_result_opened", {
+      result_kind: "video",
+      query: searchQuery,
+      sort: searchSort,
+      position,
+      rank,
+      lesson_slug: lessonSlug,
+      lesson_title: lessonTitle,
+      course_slug: courseSlug,
+      start_seconds: startSeconds,
+    });
+  }
 
   return (
     <Link
       href={href}
+      onClick={handleClick}
       className="block group focus:outline-none focus:ring-2 focus:ring-primary-400 rounded-xl"
     >
       <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden flex flex-col md:flex-row hover:border-primary-200 transition-colors">

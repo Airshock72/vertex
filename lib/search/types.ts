@@ -21,6 +21,9 @@ export type ModelOutput = z.infer<typeof ModelOutputSchema>
 export const SearchRequestSchema = z.object({
   query: z.string().trim().min(1).max(200),
   sort: z.enum(['relevance', 'newest', 'duration']).default('relevance'),
+  // Analytics attribution — client-supplied, never trusted for auth
+  distinctId: z.string().max(200).optional(),
+  sessionId: z.string().max(200).optional(),
 })
 
 export type SearchRequest = z.infer<typeof SearchRequestSchema>

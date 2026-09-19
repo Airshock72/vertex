@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import posthog from "posthog-js";
 import type { SearchResponse } from "@/lib/search/types";
 import { VideoResultCard } from "./video-result-card";
 import { LessonResultCard } from "./lesson-result-card";
@@ -62,10 +63,13 @@ export function SearchResults() {
     abortRef.current = controller;
     const key = `${q}||${sort}||${retryKey}`;
 
+    const distinctId = posthog.get_distinct_id?.() ?? undefined
+    const sessionId = posthog.get_session_id?.() ?? undefined
+
     fetch("/api/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: q, sort }),
+      body: JSON.stringify({ query: q, sort, distinctId, sessionId }),
       signal: controller.signal,
     })
       .then(async (res) => {
@@ -174,9 +178,21 @@ export function SearchResults() {
         <div className="space-y-4">
           {results.map((result, i) =>
             result.kind === "video" ? (
-              <VideoResultCard key={`${result.lessonId}-${i}`} result={result} />
+              <VideoResultCard
+                key={`${result.lessonId}-${i}`}
+                result={result}
+                searchQuery={q}
+                searchSort={sort}
+                position={i}
+              />
             ) : (
-              <LessonResultCard key={`${result.lessonId}-${i}`} result={result} />
+              <LessonResultCard
+                key={`${result.lessonId}-${i}`}
+                result={result}
+                searchQuery={q}
+                searchSort={sort}
+                position={i}
+              />
             )
           )}
         </div>

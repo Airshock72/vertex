@@ -1,5 +1,5 @@
-import { createHash } from 'crypto'
 import { type NextRequest } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { generateText, Output, isStepCount } from 'ai'
 import { openai } from '@ai-sdk/openai'
 import { createSearchMcpClient, fetchInitialContext } from '@/lib/search/mcp'
@@ -79,6 +79,11 @@ export async function POST(req: NextRequest) {
 
   const { query, sort } = parsed.data
 
+  // Server-known identity wins; fall back to client-supplied for anonymous attribution
+  const { userId } = await auth()
+  const phDistinctId = userId ?? parsed.data.distinctId ?? 'anonymous'
+  const phSessionId = parsed.data.sessionId
+
   const id = clientId(req)
   const slot = acquireSlot(id)
   if (slot === 'rate') {
@@ -126,13 +131,22 @@ export async function POST(req: NextRequest) {
     const ph = getPostHogClient()
     if (ph) {
       try {
-        const queryHash = createHash('sha256').update(query).digest('hex')
+        const videoCount = results.filter((r) => r.kind === 'video').length
+        const lessonCount = results.filter((r) => r.kind === 'lesson').length
         ph.capture({
-          distinctId: 'anonymous',
+          distinctId: phDistinctId,
           event: 'search_performed',
-          properties: { queryHash, resultCount: results.length, sort },
+          properties: {
+            query,
+            sort,
+            result_count: results.length,
+            video_result_count: videoCount,
+            lesson_result_count: lessonCount,
+            zero_results: results.length === 0,
+            signed_in: userId !== null,
+            ...(phSessionId ? { $session_id: phSessionId } : {}),
+          },
         })
-        // flush sends pending events without tearing down the singleton client
         await ph.flush()
       } catch {
         // Analytics errors must not affect the search response
@@ -150,7 +164,25 @@ export async function POST(req: NextRequest) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('[api/search]', message)
 
-    if (message.includes('Missing env') || message.includes('must use HTTPS')) {
+    const isUnconfigured = message.includes('Missing env') || message.includes('must use HTTPS')
+    const ph = getPostHogClient()
+    if (ph) {
+      try {
+        ph.capture({
+          distinctId: phDistinctId,
+          event: 'search_failed',
+          properties: {
+            query,
+            sort,
+            reason: isUnconfigured ? 'unconfigured' : 'upstream',
+            ...(phSessionId ? { $session_id: phSessionId } : {}),
+          },
+        })
+        await ph.flush()
+      } catch {}
+    }
+
+    if (isUnconfigured) {
       return Response.json({ error: 'Search is not configured' }, { status: 500 })
     }
 

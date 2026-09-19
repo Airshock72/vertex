@@ -12,6 +12,7 @@ import { Navbar, Breadcrumbs } from "@/components/ui/navigation";
 import { NavbarAuth } from "@/components/ui/navbar-auth";
 import { CourseCard } from "@/components/ui/card";
 import { BellIcon } from "@/components/ui/icons";
+import { CatalogViewTracker } from "@/components/ui/catalog-tracker";
 
 export const metadata: Metadata = {
   title: "All Courses — Vertex",
@@ -52,6 +53,7 @@ export default async function CoursesPage() {
       </header>
 
       <main className="max-w-360 mx-auto px-6 sm:px-10 py-8 sm:py-12">
+        <CatalogViewTracker courseCount={valid.length} />
         {/* ── Breadcrumb ────────────────────────────────────── */}
         <div className="mb-8">
           <Breadcrumbs crumbs={[{ label: "All Courses" }]} />

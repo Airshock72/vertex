@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import posthog from "posthog-js";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircleIcon, ChevronRightIcon, ExternalLinkIcon } from "@/components/ui/icons";
 import { CourseIcon } from "./course-icon";
@@ -25,17 +28,35 @@ function KeyPointsFileIcon() {
 
 interface LessonResultCardProps {
   result: LessonResult;
+  searchQuery?: string;
+  searchSort?: string;
+  position?: number;
 }
 
-export function LessonResultCard({ result }: LessonResultCardProps) {
-  const { lessonTitle, courseTitle, label, keyPoints, reason, href, courseIconRef } = result;
+export function LessonResultCard({ result, searchQuery, searchSort, position }: LessonResultCardProps) {
+  const { lessonSlug, lessonTitle, courseSlug, courseTitle, label, keyPoints, reason, href, courseIconRef, rank } = result;
 
   const moduleNumber = label.split(".")[0];
   const displayPoints = keyPoints.slice(0, 3);
 
+  function handleClick() {
+    posthog.capture("search_result_opened", {
+      result_kind: "lesson",
+      query: searchQuery,
+      sort: searchSort,
+      position,
+      rank,
+      lesson_slug: lessonSlug,
+      lesson_title: lessonTitle,
+      course_slug: courseSlug,
+      start_seconds: null,
+    });
+  }
+
   return (
     <Link
       href={href}
+      onClick={handleClick}
       className="block group focus:outline-none focus:ring-2 focus:ring-primary-400 rounded-xl"
     >
       <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden flex flex-col md:flex-row hover:border-primary-200 transition-colors">
