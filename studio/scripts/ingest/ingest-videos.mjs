@@ -23,7 +23,15 @@ const THROTTLE_MS = 1500
 const args = process.argv.slice(2)
 const force = args.includes('--force')
 const limitArg = args.find((a) => a.startsWith('--limit='))
-const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : Infinity
+let limit = Infinity
+if (limitArg !== undefined) {
+  const rawLimit = limitArg.split('=')[1]
+  limit = Number(rawLimit)
+  if (!Number.isInteger(limit) || limit <= 0) {
+    console.error(`Invalid --limit value: "${rawLimit}". Expected a positive integer.`)
+    process.exit(1)
+  }
+}
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms))

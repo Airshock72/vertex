@@ -1,7 +1,7 @@
 import { type NextRequest } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { generateText, Output, isStepCount } from 'ai'
-import { openai } from '@ai-sdk/openai'
+import { getSearchModel } from '@/lib/search/model'
 import { createSearchMcpClient, fetchInitialContext } from '@/lib/search/mcp'
 import { SYSTEM_PROMPT } from '@/lib/search/system-prompt'
 import { groundHits } from '@/lib/search/ground'
@@ -11,8 +11,6 @@ import { getPostHogClient } from '@/lib/posthog-server'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
-
-const MODEL_ID = (process.env.SEARCH_MODEL?.trim() || 'gpt-4o-mini') as Parameters<typeof openai>[0]
 
 // In-process rate and concurrency limiter (single-process deployments; resets on cold start)
 const RATE_WINDOW_MS = 60_000
@@ -116,12 +114,15 @@ export async function POST(req: NextRequest) {
     const systemPrompt = `${SYSTEM_PROMPT}\n\n## Schema context\n\n${initialContext}`
 
     const result = await generateText({
-      model: openai(MODEL_ID),
+      model: getSearchModel(),
       system: systemPrompt,
       prompt: query,
       tools: mcpTools as Parameters<typeof generateText>[0]['tools'],
       stopWhen: isStepCount(6),
       output: Output.object({ schema: ModelOutputSchema }),
+      // Fail fast on hard errors (no credits, bad key) instead of retrying with backoff;
+      // one retry still tolerates a transient MCP/model blip.
+      maxRetries: 1,
     })
 
     const modelOutput = result.output

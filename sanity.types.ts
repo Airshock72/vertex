@@ -763,7 +763,7 @@ export type CATEGORIES_LIST_QUERY_RESULT = Array<{
 
 // Source: ../sanity/lib/queries.ts
 // Variable: LESSONS_BY_IDS_QUERY
-// Query: *[_type == "lesson" && _id in $ids] {    _id,    _createdAt,    title,    "slug": slug.current,    duration,    keyPoints,    "course": *[_type == "course" && references(^._id)][0] {      _id,      title,      "slug": slug.current,      modules[]{        _key,        title,        "lessonIds": lessons[]->._id      }    }  }
+// Query: *[_type == "lesson" && _id in $ids] {    _id,    _createdAt,    title,    "slug": slug.current,    duration,    keyPoints,    "thumbnailRef": thumbnail.asset._ref,    "course": *[_type == "course" && references(^._id)][0] {      _id,      title,      "slug": slug.current,      "coverImageRef": coverImage.asset._ref,      modules[]{        _key,        title,        "lessonIds": lessons[]->._id      }    }  }
 export type LESSONS_BY_IDS_QUERY_RESULT = Array<{
   _id: string;
   _createdAt: string;
